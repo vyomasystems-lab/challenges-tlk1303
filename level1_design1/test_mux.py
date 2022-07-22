@@ -8,7 +8,8 @@ async def test_mux(dut):
     """Test for mux2"""
     s=0;
     dut.sel.value=s;
-    ival=[0]*31;
+    ival=[0]*31
+    ival[0]=1  
     dut.inp0.value=ival[0]
     dut.inp1.value=ival[1]
     dut.inp2.value=ival[2]
@@ -40,9 +41,9 @@ async def test_mux(dut):
     dut.inp28.value=ival[28]
     dut.inp29.value=ival[29]
     dut.inp30.value=ival[30]
-    ival[0]=1;
+    
     
     await Timer(2, units='ns')
 
 
-    cocotb.log.info(f'sel={s:05} ival={ival:31} model={ival[s]:01} DUT={int(dut.out.value):01}')
+    cocotb.log.info(f'sel={s:05} model={ival[s]:01} DUT={int(dut.out.value):01}')
