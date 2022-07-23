@@ -13,7 +13,7 @@ async def test_mux(dut):
     for i in range(0,31):
         ival[i]=1  
         ival[i-1]=0
-        s=i;
+        
         
         dut.inp0.value=ival[0]
         dut.inp1.value=ival[1]
@@ -46,13 +46,17 @@ async def test_mux(dut):
         dut.inp28.value=ival[28]
         dut.inp29.value=ival[29]
         dut.inp30.value=ival[30]
-        dut.sel.value=s;
+        
+        for j in range(0,31):
+            s=j
+            dut.sel.value=s;
 
-        await Timer(2, units='ns')
 
-        cocotb.log.info(f'sel={s:05} model={ival[s]:01} DUT={int(dut.out.value):01}')
+            await Timer(2, units='ns')
 
-        assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
+            cocotb.log.info(f'sel={s:05} model={ival[s]:01} DUT={int(dut.out.value):01}')
+
+            assert dut.out.value == ival[j], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[j], S=dut.sel.value, Out=dut.out.value)
         
      
     
