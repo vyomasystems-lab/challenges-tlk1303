@@ -47,12 +47,12 @@ async def test_mux(dut):
         dut.inp29.value=ival[29]
         dut.inp30.value=ival[30]
         dut.sel.value=s;
+
+        await Timer(2, units='ns')
+
+        cocotb.log.info(f'sel={s:05} model={ival[s]:01} DUT={int(dut.out.value):01}')
+
+        assert dut.out.value == ival[i], "Test failed with: {Ival} {S} = {Out}".format(ival=ival, S=dut.sel.value, Out=dut.out.value)
         
-
+     
     
-    
-    
-    await Timer(2, units='ns')
-
-
-    cocotb.log.info(f'sel={s:05} model={ival[s]:01} DUT={int(dut.out.value):01}')
