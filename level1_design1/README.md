@@ -54,8 +54,10 @@ The design fix here must include a case where ``sel=12`` and connect inp12 to ou
 Updating the design and re-running the test makes the test pass for this case.
 
 ```
-26.00ns INFO     sel=00012 model=1 DUT=1
+770.00ns INFO     sel=00012 model=1 DUT=1
 ```
+
+
 
 The following error is seen:
 ```
@@ -92,17 +94,8 @@ The design fix here must include a case where ``sel=30`` and connect inp30 to ou
 
 Updating the design and re-running the test makes the test pass for this case.
 
-```
-sel=00030 model=1 DUT=1
-    62.00ns INFO     test_mux passed
-    62.00ns INFO     **************************************************************************************
-                     ** TEST                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
-                     **************************************************************************************
-                     ** test_mux.test_mux              PASS          62.00           0.01       4827.29  **
-                     **************************************************************************************
-                     ** TESTS=1 PASS=1 FAIL=0 SKIP=0                 62.00           0.02       2915.27  **
-                     **************************************************************************************
-```
+![](result1_screenshot.png)
+
 
 ## Verification Strategy
   The Verification strategy followed was to stimulate a single input line to logic HIGH and keep all other input lines at logic LOW. At the same time the corresponding select line input was given and the expected output was checked against the output observed from the Design under test.
