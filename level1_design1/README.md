@@ -1,8 +1,8 @@
-# Adder Design Verification
+# Level1_Design1 MUX Verification
 
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
 
-*Make sure to include the Gitpod id in the screenshot*
+image.png
 
 ![](https://i.imgur.com/miWGA1o.png)
 
