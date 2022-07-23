@@ -6,15 +6,15 @@ The verification environment is setup using [Vyoma's UpTickPro](https://vyomasys
 
 ## Verification Environment
 
-The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. The test drives inputs to the Design Under Test (adder module here) which takes in 4-bit inputs *a* and *b* and gives 5-bit output *sum*
+The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. The test drives inputs to the Design Under Test (mux module here) which takes in 31 inputs from inp0, inp1 to inp30, along with a 5-bit select input sel and gives an output *out*
 
 The values are assigned to the input port using 
 ```
-dut.a.value = 7
-dut.b.value = 5
+dut.sel.value   = 12
+dut.inp12.value = 1
 ```
 
-The assert statement is used for comparing the adder's outut to the expected value.
+The assert statement is used for comparing the mux's output to the expected value.
 
 The following error is seen:
 ```
