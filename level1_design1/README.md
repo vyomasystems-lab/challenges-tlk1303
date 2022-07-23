@@ -38,6 +38,7 @@ Based on the above test input and analysing the design, we see the following
  begin
     case(sel)
     5'b01101: out = inp12;           ====> BUG
+    5'b01101: out = inp13;
     endcase
   end
 
