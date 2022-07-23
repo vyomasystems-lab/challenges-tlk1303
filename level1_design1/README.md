@@ -47,11 +47,11 @@ For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of
 
 ## Design Fix-1
 The design fix here must include a case where ``sel=12`` and connect inp12 to out when ``sel=12``.
-Updating the design and re-running the test makes the test pass for this case.
-
 ```
 5'b01100: out = inp12;
 ```
+
+Updating the design and re-running the test makes the test pass for this case.
 
 ```
 26.00ns INFO     sel=00012 model=1 DUT=1
