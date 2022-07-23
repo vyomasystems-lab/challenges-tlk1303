@@ -6,7 +6,9 @@ The verification environment is setup using [Vyoma's UpTickPro](https://vyomasys
 
 ## Verification Environment
 
-The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. The test drives inputs to the Design Under Test (mux module here) which takes in 31 inputs from inp0, inp1 to inp30, along with a 5-bit select input sel and gives an output *out*
+The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. 
+
+The test drives inputs to the Design Under Test (mux module) which takes in 31 inputs from inp0 to inp30, along with a 5-bit select input sel and gives an output *out*
 
 The values are assigned to the input port using 
 ```
@@ -46,8 +48,13 @@ For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of
 The design fix here must include a case where ``sel=12`` and connect inp12 to out when ``sel=12``.
 Updating the design and re-running the test makes the test pass for this case.
 
-![](https://i.imgur.com/5XbL1ZH.png)
+```
+5'b01100: out = inp12;
+```
 
+```
+26.00ns INFO     sel=00012 model=1 DUT=1
+```
 
 
 ## Verification Strategy
