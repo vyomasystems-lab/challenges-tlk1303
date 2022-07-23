@@ -18,33 +18,37 @@ The assert statement is used for comparing the mux's output to the expected valu
 
 The following error is seen:
 ```
-assert dut.sum.value == A+B, "Adder result is incorrect: {A} + {B} != {SUM}, expected value={EXP}".format(
-                     AssertionError: Adder result is incorrect: 7 + 5 != 2, expected value=12
+assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
+                     AssertionError: Test failed with: 01100 1 != 00
 ```
-## Test Scenario **(Important)**
-- Test Inputs: a=7 b=5
-- Expected Output: sum=12
-- Observed Output in the DUT dut.sum=2
+## Test Scenario-1 
+- Test Inputs: inp12=1 sel=12
+- Expected Output: out=1
+- Observed Output in the DUT dut.out=0
 
-Output mismatches for the above inputs proving that there is a design bug
+Output mismatches for the above inputs as inp12 is 1 and when sel is 12 expected output is the value in inp12. 
+Therefore this proves that there is a design bug
 
-## Design Bug
+## Design Bug-1
 Based on the above test input and analysing the design, we see the following
 
 ```
- always @(a or b) 
-  begin
-    sum = a - b;             ====> BUG
+ begin
+    case(sel)
+    5'b01101: out = inp12;           ====> BUG
+    endcase
   end
-```
-For the adder design, the logic should be ``a + b`` instead of ``a - b`` as in the design code.
 
-## Design Fix
-Updating the design and re-running the test makes the test pass.
+```
+For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of ``5'b01101: out = inp12`` as in the design code. As this statement connects inp12 to out when ``sel = 13``, and there is no case for ``sel=12``. Therefore the output comes from a default case.
+
+## Design Fix-1
+The design fix here must include a case where ``sel=12`` and connect inp12 to out when ``sel=12``.
+Updating the design and re-running the test makes the test pass for this case.
 
 ![](https://i.imgur.com/5XbL1ZH.png)
 
-The updated design is checked in as adder_fix.v
+
 
 ## Verification Strategy
 
