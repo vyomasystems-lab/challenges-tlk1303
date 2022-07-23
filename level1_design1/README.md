@@ -43,7 +43,7 @@ Based on the above test input and analysing the design, we see the following
   end
 
 ```
-For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of ``5'b01101: out = inp12`` as in the design code. As this statement connects inp12 to out when ``sel = 13``, and there is no case for ``sel=12``. Therefore the output comes from a default case.
+For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of ``5'b01101: out = inp12`` as in the design code. This statement connects inp12 to out when ``sel = 13``, and there is no case for ``sel=12``. Therefore the output comes from a default case.
 
 ## Design Fix-1
 The design fix here must include a case where ``sel=12`` and connect inp12 to out when ``sel=12``.
