@@ -184,10 +184,57 @@ Based on the above test input and analysing the design, we see the following
     endcase
   end
 ```
-Here After the Sequence is detected here and the seq_seen is driven *HIGH*, The next state of detector is always moved to *IDLE*. 
+Here After the Sequence is detected here and the seq_seen is driven *HIGH*, The next state of detector is always moved to *IDLE*. This causes the input *1* in next Clock Period after the *1011* sequence to remain undetected.
 
 ## Design Fix-3
-Here the detector must remain in *SEQ_1* state, so that if the next input is *0* it can move to the *SEQ_10* state. This ensures proper functioning of the Detector.
+In order to overcome this limitation, The next state from *SEQ_1011* should move to *SEQ_1*, if the following input is *1*.
+```
+SEQ_1:
+      begin
+        if(inp_bit == 1)
+          next_state = SEQ_1;
+        else
+          next_state = IDLE;
+     end
+```
+
+Updating the design, along with changing the initial test input sequence to ```inp = [1, 0, 1, 1, 1, 0, 1, 1]``` and then re-running the test makes the test case pass,
+
+```
+95000.00ns INFO     Input sequence = [1, 0, 1, 1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
+```
+
+Now a Fourth Error is encounterd: 
+```
+assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
+                      AssertionError: Random test failed with input sequence: [0, 1, 0, 1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
+```
+
+## Test Scenario-4
+- Test Inputs               : Input sequence     = 0, 1, 0, 1, 1, 0, 1, 1
+- Expected Output           : dut.seq_seen.value = 1
+- Observed Output in the DUT: dut.seq_seen.value = 0
+- 
+Here two Overlapping *1011* sequence is driven as input to the detector. The First sequence has been detected Correctly. However the second sequence was not detected. Hence it shows a bug in the design.
+
+## Design Bug-4
+Based on the above test input and analysing the design, we see the following
+
+```
+ always @(inp_bit or current_state)
+  begin
+    case(current_state)
+      if(inp_bit == 1)
+          next_state = SEQ_1;  
+      else
+          next_state = IDLE;   ====>DESIGN BUG
+    endcase
+  end
+```
+Here as the input of *0* sequence following a *1011* makes the next state of detector to move to *IDLE* state. This ignores the possibilty that the last 2 inputs of *10110* sequence can be the First 2 bits of the next *1011* Sequence.
+
+## Design Fix-4
+To correct this error we need to make sure the detector moves to *SEQ_10* state, so that if the next two inputs are *11* The overlapped *1011011* sequence is correctly detected. 
 ```
 SEQ_1:
       begin
@@ -198,11 +245,14 @@ SEQ_1:
      end
 ```
 
-Updating the design, along with changing the initial test input sequence to ```inp = [1, 1, 0, 1, 1, 0, 0]``` and then re-running the test makes the test case pass,
+Updating the design, along with changing the initial test input sequence to ```inp = [0, 1, 0, 1, 1, 0, 1, 1]``` and then re-running the test makes the test case pass,
 
 ```
- 65000.00ns INFO     Input sequence = [1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
-```
+ 95000.00ns INFO     Input sequence = [0, 1, 0, 1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
+ ```
+ 
+ Following these design fixes all random test sequences were correctly detected by the Sequence detector,
+ 
 
 
 ## Verification Strategy
