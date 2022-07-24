@@ -13,7 +13,7 @@ module seq_detect_1011(seq_seen, inp_bit, reset, clk);
             SEQ_101 = 3,
             SEQ_1011 = 4;
 
-  reg [2:0] current_state, next_state;
+  reg [2:0] current_state, next_state;  
 
   // if the current state of the FSM has the sequence 1011, then the output is
   // high
@@ -66,7 +66,10 @@ module seq_detect_1011(seq_seen, inp_bit, reset, clk);
       end
       SEQ_1011:
       begin
-        next_state = IDLE;
+        if(inp_bit == 1)
+          next_state = SEQ_1;
+        else
+          next_state = SEQ_10;
       end
     endcase
   end

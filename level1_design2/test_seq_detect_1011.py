@@ -21,9 +21,9 @@ async def test_seq_bug1(dut):
     dut.reset.value = 1
     await FallingEdge(dut.clk)  
     dut.reset.value = 0
-    await FallingEdge(dut.clk)
+    await FallingEdge(dut.clk)  
 
-    inp = [1, 0, 1, 1, 1, 0, 1, 1]
+    inp = [0, 1, 0, 1, 1, 0, 1, 1]
 
     for i in range(128):
         
