@@ -253,10 +253,11 @@ Updating the design, along with changing the initial test input sequence to ```i
  
  Following these design fixes all random test sequences were correctly detected by the Sequence detector,
  
-
+ ![](test_result_ss.png)
+ 
 
 ## Verification Strategy
-  The Verification strategy followed was to stimulate a single input line to logic HIGH and keep all other input lines at logic LOW. At the same time each input line was selected one after the other by using the select line. The corresponding observed outputs were checked against the expected output and mismatches were logged. 
+  The Verification strategy followed was to use a Constrained Random Verification. The Verification was started with the minimum contraint followed by a large number of random input sequence. Whenever the Verification fails the initial input was set to the failing input and The bugs were identified and fixed. Then the verification was restarted with the updated contraint to make sure the design passes all possible input sequences.
 
 ## Is the verification complete ?
-  The Verification for the given mux is complete and the design bugs were identified and fixed. The fixed design has passed all the test cases.
+  The Verification Environment tested a variety of conditions in which the specified sequence can be driven to the input of the detector, and The corrected design has passed all those cases. The number of cases tested was appropriately large, and Hence the Verification should have covered the possible cases in which the specified sequence can occur. Therefore the Verification of the given Sequence Detector is now Complete.
