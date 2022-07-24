@@ -10,7 +10,7 @@ The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explaine
 
 The test drives inputs to the Design Under Test (sequence detector module - seq_detect_1011.v) which takes a Clock, Reset and Input bit signal as its inputs. The Design Under Test(DUT) drives an output *seq_seen* whenever the sequence *1011* is detected. The Sequence detection should includes overlapping sequences of *1011*.
 
-The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two overlapped sequence *1011011*. Therfore by checking the output for all possible 8-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 8-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^8 = 256).
+The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two consecutive sequence *10111011*. Therfore by checking the output for all possible 8-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 8-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^8 = 256).
 
 The Clock Input is driven using the cocotb.clock module whose period is specified by the following statements,
 ```
@@ -160,16 +160,15 @@ Updating the design, along with changing the initial test input sequence to ```i
 Then a Third Error is encounterd: 
 ```
 assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-                     AssertionError: Random test failed with input sequence: [1, 0, 1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
+                     AssertionError: Random test failed with input sequence: [1, 0, 1, 1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
 ```
 
 ## Test Scenario-3
-- Test Inputs               : Input sequence     = 1, 0, 1, 1, 0, 1, 1
+- Test Inputs               : Input sequence     = 1, 0, 1, 1, 1, 0, 1, 1
 - Expected Output           : dut.seq_seen.value = 1
 - Observed Output in the DUT: dut.seq_seen.value = 0
 
-The Output of the Sequence detector mismatches because the last 4 inputs in the above sequence is *1011*. Hence the Expected output of the detector is 1. 
-However the Observed output of the detector is a 0, indicating that the Detector has not been able to detect the sequence here.
+Here two consecutive *1011* sequence is driven as input to the detector. The First sequence has been detected Correctly. However the second sequence was not detected. Hence it shows a bug in the design.
 
 ## Design Bug-3
 Based on the above test input and analysing the design, we see the following
@@ -178,17 +177,14 @@ Based on the above test input and analysing the design, we see the following
  always @(inp_bit or current_state)
   begin
     case(current_state)
-    SEQ_1:
+    SEQ_1011:
       begin
-        if(inp_bit == 1)
-          next_state = IDLE;  ======>DESIGN BUG
-        else
-          next_state = SEQ_10;
-     end
+        next_state = IDLE;  =====>DESIGN BUG
+      end
     endcase
   end
 ```
-Here when the input sequence has consecutive *1* the detector incorrectly moves the next state to *IDLE*. This means that the *1011* sequence beginning with the latter *1* is not detected as the Current state is *IDLE* and the following *0* does not cause any change in state.
+Here After the Sequence is detected here and the seq_seen is driven *HIGH*, The next state of detector is always moved to *IDLE*. 
 
 ## Design Fix-3
 Here the detector must remain in *SEQ_1* state, so that if the next input is *0* it can move to the *SEQ_10* state. This ensures proper functioning of the Detector.
