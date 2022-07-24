@@ -8,14 +8,35 @@ The verification environment is setup using [Vyoma's UpTickPro](https://vyomasys
 
 The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. 
 
-The test drives inputs to the Design Under Test (mux module) which takes in 31 inputs from inp0 to inp30, along with a 5-bit select input sel and gives an output *out*
+The test drives inputs to the Design Under Test (sequence detector module - seq_detect_1011.v) which takes a Clock, Reset and Input bit signal as its inputs. The Design Under Test(DUT) drives an output *seq_seen* whenever the sequence *1011* is detected. The Sequence detection should includes overlapping sequences of *1011*.
 
-The values are assigned to the input port using 
+The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two overlapped sequence *1011011*. Therfore by checking the output for all possible 7-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 7-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^7 = 128).
+
+The Clock Input is driven using the cocotb.clock module whose period is specified by the following statements,
 ```
-dut.sel.value   = s
-dut.inp0.value  = ival[0]
-dut.inp1.value  = ival[1]
-dut.inp2.value  = ival[2]
+clock = Clock(dut.clk, 10, units="us")  # Create a 10us period clock on port clk
+cocotb.start_soon(clock.start())        # Start the clock
+```
+
+The DUT is reset to its *IDLE* state before driving the input sequence. This is done by the stimulating the reset signal as given below,
+```
+dut.reset.value = 1
+await FallingEdge(dut.clk)  
+dut.reset.value = 0
+await FallingEdge(dut.clk)
+```
+To Reset the sequence detector the Reset signal value is set *HIGH* till a falling edge of the clock is seen. Then the Reset signal is set to *LOW*, and the test waits for the next falling edge before proceeding with the test.
+
+The Input sequence is stored in a list inp and driven to the *inp_bit* for a Clock period between two falling edges of the clock.
+```
+dut.inp_bit.value = inp[j]
+await FallingEdge(dut.clk)
+```
+Before the next input sequence is applied the sequence detector is reset by using the following reset signal,
+```
+dut.reset.value = 1
+await FallingEdge(dut.clk)  
+dut.reset.value = 0
 ```
 
 The assert statement is used for comparing the mux's output to the expected value.
