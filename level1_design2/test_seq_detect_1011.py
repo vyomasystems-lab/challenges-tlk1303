@@ -23,11 +23,11 @@ async def test_seq_bug1(dut):
     dut.reset.value = 0
     await FallingEdge(dut.clk)
 
-    inp = [1, 0, 1, 1, 0, 1, 1]
+    inp = [1, 0, 1, 1, 0, 1, 1, 0]
 
     for i in range(128):
         
-        for j in range(0,7):
+        for j in range(0,8):
             dut.inp_bit.value = inp[j]
             await FallingEdge(dut.clk)
         
@@ -50,7 +50,7 @@ async def test_seq_bug1(dut):
         await FallingEdge(dut.clk)  
         dut.reset.value = 0
 
-        inp = [random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1)]
+        inp = [random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1)]
 
         
 
