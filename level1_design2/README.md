@@ -10,7 +10,7 @@ The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explaine
 
 The test drives inputs to the Design Under Test (sequence detector module - seq_detect_1011.v) which takes a Clock, Reset and Input bit signal as its inputs. The Design Under Test(DUT) drives an output *seq_seen* whenever the sequence *1011* is detected. The Sequence detection should includes overlapping sequences of *1011*.
 
-The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two overlapped sequence *1011011*. Therfore by checking the output for all possible 7-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 7-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^7 = 128).
+The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two overlapped sequence *1011011*. Therfore by checking the output for all possible 8-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 8-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^8 = 256).
 
 The Clock Input is driven using the cocotb.clock module whose period is specified by the following statements,
 ```
@@ -32,7 +32,7 @@ The Input sequence is stored in a list inp and driven to the *inp_bit* for a Clo
 dut.inp_bit.value = inp[j]
 await FallingEdge(dut.clk)
 ```
-Before the next randomized 7-bit input sequence is applied the sequence detector is reset by using the following reset signal,
+Before the next randomized 8-bit input sequence is applied the sequence detector is reset by using the following reset signal,
 ```
 dut.reset.value = 1
 await FallingEdge(dut.clk)  
@@ -99,7 +99,7 @@ SEQ_101:
       end
 ```
 
-Updating the design, along with changing the initial test input sequence to ```inp = [0, 1, 0, 1, 0, 1, 1]``` and then re-running the test makes the test case pass,
+Updating the design, along with changing the initial test input sequence to ```inp = [0, 1, 0, 1, 0, 1, 1, 0]``` and then re-running the test makes the test case pass,
 
 ```
  85000.00ns INFO     Input sequence = [0, 1, 0, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
@@ -151,7 +151,7 @@ SEQ_1:
      end
 ```
 
-Updating the design, along with changing the initial test input sequence to ```inp = [1, 1, 0, 1, 1, 0, 0]``` and then re-running the test makes the test case pass,
+Updating the design, along with changing the initial test input sequence to ```inp = [1, 1, 0, 1, 1, 0, 0, 0]``` and then re-running the test makes the test case pass,
 
 ```
  65000.00ns INFO     Input sequence = [1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
