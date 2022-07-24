@@ -1,4 +1,4 @@
-# Level1_Design1 MUX Verification
+# Level1_Design2  SEQUENCE DETECTOR Verification
 
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
 
@@ -32,14 +32,26 @@ The Input sequence is stored in a list inp and driven to the *inp_bit* for a Clo
 dut.inp_bit.value = inp[j]
 await FallingEdge(dut.clk)
 ```
-Before the next input sequence is applied the sequence detector is reset by using the following reset signal,
+Before the next randomized 7-bit input sequence is applied the sequence detector is reset by using the following reset signal,
 ```
 dut.reset.value = 1
 await FallingEdge(dut.clk)  
 dut.reset.value = 0
 ```
 
-The assert statement is used for comparing the mux's output to the expected value.
+The assert statement is used for comparing the Sequence detector's output to the expected output. That is the DUT output must remain *LOW* while the sequence is not seen and The DUT output must be driven *HIGH* when the sequence is seen. Since the detecor's output must give correct values for both cases an if else condition is used.
+```
+if(inp[j-3:j+1] == [1,0,1,1]):
+  assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
+                        A = inp[:j+1], B = dut.seq_seen.value
+                    )
+  cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 1, DUT Output = {dut.seq_seen.value}')
+else:
+  assert dut.seq_seen.value == 0, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 0".format(
+                        A = inp[:j+1], B = dut.seq_seen.value
+                    )
+  cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 0, DUT Output = {dut.seq_seen.value}')
+```
 
 The following error is seen:
 ```
