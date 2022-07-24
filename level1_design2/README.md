@@ -53,83 +53,160 @@ else:
   cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 0, DUT Output = {dut.seq_seen.value}')
 ```
 
-The following error is seen:
+In the above mentioned verfication environment, The following error is seen:
+
 ```
-assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
-                     AssertionError: Test failed with: 01100 1 != 00
+assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
+                      AssertionError: Random test failed with input sequence: [0, 1, 0, 1, 0, 1, 1], and output: 0, Expected ouput = 1
 ```
 ## Test Scenario-1 
-- Test Inputs: inp12=1 sel=12
-- Expected Output: out=1
-- Observed Output in the DUT dut.out=0
+- Test Inputs               : Input sequence     = 0, 1, 0, 1, 0, 1, 1
+- Expected Output           : dut.seq_seen.value = 1
+- Observed Output in the DUT: dut.seq_seen.value = 0
 
-Output mismatches for the above inputs as inp12 is 1 and when sel is 12 expected output is the value in inp12. 
-Therefore this proves that there is a design bug
+The Output of the Sequence detector mismatches because the last 4 inputs in the above sequence is *1011*. Hence the Expected output of the detector is 1. 
+However the Observed output of the detector is a 0, indicating that the Detector has not been able to detect the sequence.
 
 ## Design Bug-1
 Based on the above test input and analysing the design, we see the following
 
 ```
- begin
-    case(sel)
-    5'b01101: out = inp12;           ====> BUG
-    5'b01101: out = inp13;
+ always @(inp_bit or current_state)
+  begin
+    case(current_state)
+    SEQ_101:
+      begin
+        if(inp_bit == 1)
+          next_state = SEQ_1011;
+        else
+          next_state = IDLE;    =======>DESIGN BUG
+    end
     endcase
   end
 
 ```
-For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of ``5'b01101: out = inp12`` as in the design code. This statement connects inp12 to out when ``sel = 13``, and there is no case for ``sel=12``. Therefore the output comes from a default case.
+In the next state block, when current state is *SEQ_101* and Input is a *0* the design incorrectly moves to the *IDLE* state. This causes the error seen here where the Input sequence first gives *1 0 1* followed by a *0*. This moves the next state to *IDLE* and at the rising edge of clock, The current state changes to *IDLE*. 
 
 ## Design Fix-1
-The design fix here must include a case where ``sel=12`` and connect inp12 to out when ``sel=12``.
+For proper functioning of detector the next state here should *SEQ_10*. Since the after the sequence *101* a *0* is encounterd, the last two inputs (*10* of *1010*) can be the First two bits of the required sequence(*1011*). Therefore the change in design here is,
 ```
-5'b01100: out = inp12;
+SEQ_101:
+      begin
+        if(inp_bit == 1)
+          next_state = SEQ_1011;
+        else
+          next_state = SEQ_10;
+      end
 ```
 
-Updating the design and re-running the test makes the test pass for this case.
+Updating the design, along with changing the initial test input sequence to ```inp = [0, 1, 0, 1, 0, 1, 1]``` and then re-running the test makes the test case pass,
 
 ```
-770.00ns INFO     sel=00012 model=1 DUT=1
+ 85000.00ns INFO     Input sequence = [0, 1, 0, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
 ```
 
 
 
 Then The second error is seen:
 ```
-assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
-                     AssertionError: Test failed with: 11110 1 != 00
+assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
+                     AssertionError: Random test failed with input sequence: [1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
 ```
 ## Test Scenario-2
-- Test Inputs: inp30=1 sel=30
-- Expected Output: out=1
-- Observed Output in the DUT dut.out=0
+- Test Inputs               : Input sequence     = 1, 1, 0, 1, 1
+- Expected Output           : dut.seq_seen.value = 1
+- Observed Output in the DUT: dut.seq_seen.value = 0
 
-Output mismatches for the above inputs as inp30 is 1 and when sel is 30 expected output is the value in inp30. 
-Therefore this proves that there is a design bug
+The Output of the Sequence detector mismatches because the last 4 inputs in the above sequence is *1011*. Hence the Expected output of the detector is 1. 
+However the Observed output of the detector is a 0, indicating that the Detector has not been able to detect the sequence here.
 
 ## Design Bug-2
 Based on the above test input and analysing the design, we see the following
 
 ```
- begin
-    case(sel)
-    5'b11101: out = inp29;   ====> BUG
-    default: out = 0;
+ always @(inp_bit or current_state)
+  begin
+    case(current_state)
+    SEQ_1:
+      begin
+        if(inp_bit == 1)
+          next_state = IDLE;  ======>DESIGN BUG
+        else
+          next_state = SEQ_10;
+     end
     endcase
   end
-
 ```
-The given mux design does not have a case for ``sel=30`` that is ``sel=5'b11110``. Therefore the mux design gives a default case output of 0 while the expected output for ``sel=30`` is 1.
+Here when the input sequence has consecutive *1* the detector incorrectly moves the next state to *IDLE*. This means that the *1011* sequence beginning with the latter *1* is not detected as the Current state is *IDLE* and the following *0* does not cause any change in state.
 
 ## Design Fix-2
-The design fix here must include a case where ``sel=30`` and connect inp30 to out when ``sel=30``.
+Here the detector must remain in *SEQ_1* state, so that if the next input is *0* it can move to the *SEQ_10* state. This ensures proper functioning of the Detector.
 ```
-5'b11110: out = inp30;
+SEQ_1:
+      begin
+        if(inp_bit == 1)
+          next_state = SEQ_1; 
+        else
+          next_state = SEQ_10;
+     end
 ```
 
-Updating the design and re-running the test makes the test pass for this case.
+Updating the design, along with changing the initial test input sequence to ```inp = [1, 1, 0, 1, 1, 0, 0]``` and then re-running the test makes the test case pass,
 
-![](result1_screenshot.png)
+```
+ 65000.00ns INFO     Input sequence = [1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
+```
+
+Then a Third Error is encounterd: 
+```
+assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
+                     AssertionError: Random test failed with input sequence: [1, 0, 1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
+```
+
+## Test Scenario-3
+- Test Inputs               : Input sequence     = 1, 0, 1, 1, 0, 1, 1
+- Expected Output           : dut.seq_seen.value = 1
+- Observed Output in the DUT: dut.seq_seen.value = 0
+
+The Output of the Sequence detector mismatches because the last 4 inputs in the above sequence is *1011*. Hence the Expected output of the detector is 1. 
+However the Observed output of the detector is a 0, indicating that the Detector has not been able to detect the sequence here.
+
+## Design Bug-3
+Based on the above test input and analysing the design, we see the following
+
+```
+ always @(inp_bit or current_state)
+  begin
+    case(current_state)
+    SEQ_1:
+      begin
+        if(inp_bit == 1)
+          next_state = IDLE;  ======>DESIGN BUG
+        else
+          next_state = SEQ_10;
+     end
+    endcase
+  end
+```
+Here when the input sequence has consecutive *1* the detector incorrectly moves the next state to *IDLE*. This means that the *1011* sequence beginning with the latter *1* is not detected as the Current state is *IDLE* and the following *0* does not cause any change in state.
+
+## Design Fix-3
+Here the detector must remain in *SEQ_1* state, so that if the next input is *0* it can move to the *SEQ_10* state. This ensures proper functioning of the Detector.
+```
+SEQ_1:
+      begin
+        if(inp_bit == 1)
+          next_state = SEQ_1; 
+        else
+          next_state = SEQ_10;
+     end
+```
+
+Updating the design, along with changing the initial test input sequence to ```inp = [1, 1, 0, 1, 1, 0, 0]``` and then re-running the test makes the test case pass,
+
+```
+ 65000.00ns INFO     Input sequence = [1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
+```
 
 
 ## Verification Strategy
