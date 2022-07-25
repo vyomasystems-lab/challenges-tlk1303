@@ -10,7 +10,7 @@ The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explaine
 
 The test drives inputs to the Design Under Test (sequence detector module - seq_detect_1011.v) which takes a Clock, Reset and Input bit signal as its inputs. The Design Under Test(DUT) drives an output *seq_seen* whenever the sequence *1011* is detected. The Sequence detection should includes overlapping sequences of *1011*.
 
-The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two consecutive sequence *10111011*. Therfore by checking the output for all possible 8-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 8-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^8 = 256).
+The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two consecutive sequence *10111011*. Therfore by checking the output for all possible 8-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 8-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^8 = 256). The test also takes the possiblity of overlapped sequence into its account and an appropriate if condition to make sure that overlapped sequence is not detected.
 
 The Clock Input is driven using the cocotb.clock module whose period is specified by the following statements,
 ```
@@ -187,7 +187,7 @@ Based on the above test input and analysing the design, we see the following
 Here After the Sequence is detected here and the seq_seen is driven *HIGH*, The next state of detector is always moved to *IDLE*. This causes the input *1* in next Clock Period after the *1011* sequence to remain undetected.
 
 ## Design Fix-3
-In order to overcome this limitation, The next state from *SEQ_1011* should move to *SEQ_1*, if the following input is *1*.
+In order to overcome this limitation, The next state from *SEQ_1011* should move to *SEQ_1*, if the following input is *1*. Moreover if next input of the sequence is zero the Detector is moved to its default state *IDLE*.
 ```
 SEQ_1:
       begin
@@ -203,59 +203,12 @@ Updating the design, along with changing the initial test input sequence to ```i
 ```
 95000.00ns INFO     Input sequence = [1, 0, 1, 1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
 ```
-
-Now a Fourth Error is encounterd: 
-```
-assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-                      AssertionError: Random test failed with input sequence: [0, 1, 0, 1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
-```
-
-## Test Scenario-4
-- Test Inputs               : Input sequence     = 0, 1, 0, 1, 1, 0, 1, 1
-- Expected Output           : dut.seq_seen.value = 1
-- Observed Output in the DUT: dut.seq_seen.value = 0
-- 
-Here two Overlapping *1011* sequence is driven as input to the detector. The First sequence has been detected Correctly. However the second sequence was not detected. Hence it shows a bug in the design.
-
-## Design Bug-4
-Based on the above test input and analysing the design, we see the following
-
-```
- always @(inp_bit or current_state)
-  begin
-    case(current_state)
-      if(inp_bit == 1)
-          next_state = SEQ_1;  
-      else
-          next_state = IDLE;   ====>DESIGN BUG
-    endcase
-  end
-```
-Here as the input of *0* sequence following a *1011* makes the next state of detector to move to *IDLE* state. This ignores the possibilty that the last 2 inputs of *10110* sequence can be the First 2 bits of the next *1011* Sequence.
-
-## Design Fix-4
-To correct this error we need to make sure the detector moves to *SEQ_10* state, so that if the next two inputs are *11* The overlapped *1011011* sequence is correctly detected. 
-```
-SEQ_1:
-      begin
-        if(inp_bit == 1)
-          next_state = SEQ_1; 
-        else
-          next_state = SEQ_10;
-     end
-```
-
-Updating the design, along with changing the initial test input sequence to ```inp = [0, 1, 0, 1, 1, 0, 1, 1]``` and then re-running the test makes the test case pass,
-
-```
- 95000.00ns INFO     Input sequence = [0, 1, 0, 1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
- ```
  
  Following these design fixes all random test sequences were correctly detected by the Sequence detector,
  
  ![](test_result_ss.png)
  
-
+The Fixed Design is added in the Corrected design directory of this repository.
 ## Verification Strategy
   The Verification strategy followed was to use a Constrained Random Verification. The Verification was started with the minimum contraint followed by a large number of random input sequence. Whenever the Verification fails the initial input was set to the failing input and The bugs were identified and fixed. Then the verification was restarted with the updated contraint to make sure the design passes all possible input sequences.
 
