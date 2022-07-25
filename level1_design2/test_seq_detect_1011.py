@@ -39,6 +39,7 @@ async def test_seq_bug1(dut):
                         A = inp[:j+1], B = dut.seq_seen.value
                     )
                     cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 1, DUT Output = {dut.seq_seen.value}')
+                    break
                 else:
                     assert dut.seq_seen.value == 0, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 0".format(
                         A = inp[:j+1], B = dut.seq_seen.value
@@ -50,7 +51,7 @@ async def test_seq_bug1(dut):
         await FallingEdge(dut.clk)  
         dut.reset.value = 0
 
-        inp = [random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),1,random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1)]
+        inp = [random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1)]
 
         
 
