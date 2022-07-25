@@ -23,9 +23,9 @@ async def test_seq_bug1(dut):
     dut.reset.value = 0
     await FallingEdge(dut.clk)  
 
-    inp = [1, 0, 1, 0, 1, 0, 1, 1]
+    inp = [0, 1, 0, 1, 1, 0, 1, 1]
 
-    for i in range(1):
+    for i in range(256):
         
         for j in range(0,8):
             dut.inp_bit.value = inp[j]
@@ -33,7 +33,7 @@ async def test_seq_bug1(dut):
         
             
             if(j >= 3):
-                
+                print(dut.seq_seen.value)
                 if((inp[j-3:j+1] == [1, 0, 1, 1]) and (inp[j-6:j+1]!=[1, 0, 1, 1, 0, 1, 1])): 
                     assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
                         A = inp[:j+1], B = dut.seq_seen.value
