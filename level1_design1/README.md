@@ -98,7 +98,7 @@ Updating the design and re-running the test makes the test pass for this case.
 
 ![](result1_screenshot.png)
 
-
+The Corrected Design is added in The Corrected design directory of this repository.
 ## Verification Strategy
   The Verification strategy followed was to stimulate a single input line to logic HIGH and keep all other input lines at logic LOW. At the same time each input line was selected one after the other by using the select line. The corresponding observed outputs were checked against the expected output and mismatches were logged. 
 
