@@ -1,6 +1,6 @@
 // See LICENSE.vyoma for more details
 // Verilog module for Sequence detection: 1011
-module seq_detect_1011(seq_seen, inp_bit, reset, clk);
+module seq_detect_1011_Corrected(seq_seen, inp_bit, reset, clk);
 
   output seq_seen;
   input inp_bit;
