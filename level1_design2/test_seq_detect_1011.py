@@ -50,7 +50,7 @@ async def test_seq_bug1(dut):
         await FallingEdge(dut.clk)  
         dut.reset.value = 0
 
-        inp = [random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1)]
+        inp = [random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),1,random.randint(0, 1),random.randint(0, 1),random.randint(0, 1),random.randint(0, 1)]
 
         
 
