@@ -208,7 +208,7 @@ Updating the design, along with changing the initial test input sequence to ```i
  
  ![](test_result_ss.png)
  
-
+The Fixed Design is added in the Corrected design directory of this repository.
 ## Verification Strategy
   The Verification strategy followed was to use a Constrained Random Verification. The Verification was started with the minimum contraint followed by a large number of random input sequence. Whenever the Verification fails the initial input was set to the failing input and The bugs were identified and fixed. Then the verification was restarted with the updated contraint to make sure the design passes all possible input sequences.
 
