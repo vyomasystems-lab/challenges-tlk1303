@@ -40,7 +40,7 @@ def run_test(dut):
             0x08004033, 0x48004033,                         0x08007033, 0x20001013, 0x20005013, 0x60005013, 0x48001013, 0x28001013, 
             0x68001013, 0x48005013, 0x08001033, 0x08005033, 0x08001013, 0x08005013, 0x28005013, 0x68005013, 0x04005013, 0x48007033]#0x40007033]
 
-    for i in range(100):
+    for i in range(1):
         # input transaction
         a = random.randint(0, 2**32)
         b = random.randint(0, 2**32)
@@ -55,6 +55,7 @@ def run_test(dut):
         dut.mav_putvalue_src2.value = mav_putvalue_src2
         dut.mav_putvalue_src3.value = mav_putvalue_src3
         dut.EN_mav_putvalue.value = 1
+        #instr.append(random.randint(0, 2**32))
 
         for j in instr:
 
@@ -75,5 +76,7 @@ def run_test(dut):
             # comparison
             error_message = f'Value mismatch DUT = {hex(dut_output)} does not match MODEL = {hex(expected_mav_putvalue)}'
             assert dut_output == expected_mav_putvalue, error_message
+        
+        #instr.pop()
     
     print(tested)  
