@@ -76,6 +76,10 @@ def run_test(dut):
             # comparison
             error_message = f'Value mismatch DUT = {hex(dut_output)} does not match MODEL = {hex(expected_mav_putvalue)}'
             assert dut_output == expected_mav_putvalue, error_message
+
+            #dut.RST_N.value <= 0
+            #yield Timer(10) 
+            #dut.RST_N.value <= 1
         
         #instr.pop()
     
