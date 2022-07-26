@@ -54,6 +54,20 @@ def run_test(dut):
     # obtaining the output
     dut_output = dut.mav_putvalue.value
 
+    # Testing Sceneario
+    instr=hex(mav_putvalue_instr)[2:]
+    le=int(instr,16) #convert Hex  to int
+    le=bin(le)[2:] #convert int to binary
+    le=le.zfill(32)
+    #print(le)
+    length=len(le)
+    opcode = le[-7::]
+    func3 = le[length-15:length-12]
+    func7 = le[length-32:length-25]
+    #print(func3)
+    #print(func7)
+   
+
     cocotb.log.info(f'DUT OUTPUT={hex(dut_output)}')
     cocotb.log.info(f'EXPECTED OUTPUT={hex(expected_mav_putvalue)}')
     
