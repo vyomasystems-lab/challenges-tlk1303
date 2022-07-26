@@ -32,11 +32,11 @@ def run_test(dut):
     yield Timer(10) 
     dut.RST_N.value <= 1
     tested = 0
-    instr = [#0x40007033, 
+    instr = [#0x40007033, 0x08001013,
             0x40006033, 0x40004033, 0x20001033, 0x20005033, 0x60001033, 0x60005033, 0x48001033,
             0x28001033, 0x68001033, 0x48005033, 0x28005033, 0x68005033]
 
-    for i in range(0,2):
+    for i in range(2):
         # input transaction
         a = random.randint(0, 2**32)
         b = random.randint(0, 2**32)
@@ -72,4 +72,4 @@ def run_test(dut):
             error_message = f'Value mismatch DUT = {hex(dut_output)} does not match MODEL = {hex(expected_mav_putvalue)}'
             assert dut_output == expected_mav_putvalue, error_message
     
-    #print(tested)
+    #print(tested)  190-526
