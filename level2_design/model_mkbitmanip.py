@@ -27,7 +27,7 @@ def bitmanip(mav_putvalue_instr, mav_putvalue_src1,mav_putvalue_src2, mav_putval
     imm_value=(int(str(imm_value),2))
     shamt_imm= imm_value & (31)
     shamt1= mav_putvalue_src2 & (31)
-    print("func7 {0} immvalue1 {1} : func3 {2} opcode {3} ".format(func7,imm_value_1,func3,opcode))
+    print("func7: {0} immvalue1: {1}  func3: {2} opcode: {3} ".format(func7,imm_value_1,func3,opcode))
     #print("func7_imm {0} func7_imm_SHFL {1} func7_1bit {2} ".format(func7_imm, func7_imm_SHFL, func7_1bit))
     if((func7 == "0100000") and (func3 == "111") and (opcode == "0110011") ):
         print('--ANDN 1')
