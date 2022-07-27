@@ -2725,7 +2725,7 @@ module mkbitmanip(CLK,
 	       x__h38206 :
 	       IF_mav_putvalue_src2_BIT_30_75_THEN_IF_mav_put_ETC___d2219 ;
   assign field1__h2904 = x__h39669 | y__h39670 ;
-  assign field1__h2958 = x__h39889 | y__h39890 ;
+  assign field1__h2958 = (mav_putvalue_src1 & mav_putvalue_src2) | y__h39890 ;
   assign field1__h3009 =
 	     (mav_putvalue_src2 == 32'd0) ?
 	       mav_putvalue_src3 :
@@ -3908,7 +3908,7 @@ module mkbitmanip(CLK,
   assign x__h39669 = data__h39658 & mask__h39657 ;
   assign x__h39722 = ~x__h39744 ;
   assign x__h39744 = 32'hFFFFFFFF << shamt__h39728 ;
-  assign x__h39889 = mav_putvalue_src1 & mav_putvalue_src2 ;
+  assign x__h39889 = mav_putvalue_src1 & ~mav_putvalue_src2 ;       //===>DESIGN BUG
   assign x__h410 = { mav_putvalue_instr[14:12], mav_putvalue_instr[6:4] } ;
   assign x__h4309 = mav_putvalue_src1[x__h4425] ;
   assign x__h4402 = 32'd1 << x__h4425 ;
