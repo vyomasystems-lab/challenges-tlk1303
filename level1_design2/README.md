@@ -2,7 +2,7 @@
 
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
 
-![](seq_ss.png)
+![](seq_det_ss.png)
 
 ## Verification Environment
 
