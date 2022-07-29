@@ -24,10 +24,27 @@ async def test_seq_bug1(dut):
     dut.valid_in.value = 1
 
     dut.data_in.value = 2**128-1
-    AES A;
+    A = AES()
+    inp = bin(2**128-1)
     
-    expected_out = A.mixcolumns(2**128-1)
+    inp = inp[2:]
+    block = (int(inp[:32],2), int(inp[32:64],2), int(inp[64:96],2), int(inp[96:128],2))
+    print(block)
     
+    out1 = A.mixcolumns(block)
+    out1 = [bin(out1[0])[2:], bin(out1[1])[2:], bin(out1[2])[2:], bin(out1[3])[2:]]
+    out1[0] = str(out1[0])
+    out1[1] = str(out1[1])
+    out1[2] = str(out1[2])
+    out1[3] = str(out1[3])
+
+    expected_out = ""
+    for i in out1:
+        
+        expected_out +=i
+    
+    expected_out = int(expected_out)
+
     await FallingEdge(dut.clk)  
     #await FallingEdge(dut.clk) 
     #await FallingEdge(dut.clk)  
