@@ -9,9 +9,9 @@ from AES_model import *
 
 @cocotb.test()
 async def test_seq_bug1(dut):
-    """Test for seq detection """
+    
     dut.valid_in.value = 0
-    clock = Clock(dut.clk, 10, units="us")  # Create a 10us period clock on port clk
+    clock = Clock(dut.clk, 1, units="ns")  # Create a 10us period clock on port clk
     cocotb.start_soon(clock.start())        # Start the clock
 
     # reset
@@ -20,45 +20,31 @@ async def test_seq_bug1(dut):
     dut.reset.value = 0
     await FallingEdge(dut.clk) 
     dut.reset.value = 1 
+    A = AES()
     
     dut.valid_in.value = 1
-
-    dut.data_in.value = 2**128-1
-    A = AES()
-    inp = bin(2**128-1)
-    
-    inp = inp[2:]
-    block = (int(inp[:32],2), int(inp[32:64],2), int(inp[64:96],2), int(inp[96:128],2))
-    print(block)
-    
-    out1 = A.mixcolumns(block)
-    out1 = [bin(out1[0])[2:], bin(out1[1])[2:], bin(out1[2])[2:], bin(out1[3])[2:]]
-    out1[0] = str(out1[0])
-    out1[1] = str(out1[1])
-    out1[2] = str(out1[2])
-    out1[3] = str(out1[3])
-
-    expected_out = ""
-    for i in out1:
+    for i in range(1):#2**10):
+        inp = random.randint(0, 2**128)
+        dut.data_in.value = inp
         
-        expected_out +=i
+        inp = bin(inp)
+        
+        inp = inp[2:]
+        block = (int(inp[0:32],2), int(inp[32:64],2), int(inp[64:96],2), int(inp[96:128],2))
     
-    expected_out = int(expected_out)
-
-    await FallingEdge(dut.clk)  
-    #await FallingEdge(dut.clk) 
-    #await FallingEdge(dut.clk)  
-    #await FallingEdge(dut.clk)  
- 
-
-    
-                    
-    #assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-    
-    cocotb.log.info(f'Input sequence = {dut.data_in.value}, Expected output = {expected_out}, DUT Output = {dut.valid_out.value},{dut.data_out.value}')
-                                   
-                
-   
-    
-
+        
+        out1 = A.mixcolumns(block)
+        out1 = [bin(out1[0])[2:], bin(out1[1])[2:].zfill(32), bin(out1[2])[2:].zfill(32), bin(out1[3])[2:].zfill(32)]
+                     
+        await FallingEdge(dut.clk)  
+        dut_out = bin(dut.data_out.value)[2:]
+        print(dut_out[0:32])
+        print(out1[0])
+        print(dut_out[32:64])
+        print(out1[1])
+        
+        cocotb.log.info(f'Input = {dut.data_in.value}, DUT Output = {dut.valid_out.value},{dut_out}')            
+        assert dut_out[0:32] == out1[0] and dut_out[32:64] == out1[1] and dut_out[64:96] == out1[2] and dut_out[96:128] == out1[3] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C}".format(
+            A=inp,B=dut_out,C=out1)
+        
         
