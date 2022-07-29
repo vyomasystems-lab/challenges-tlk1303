@@ -5,6 +5,7 @@ from pathlib import Path
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge
+from AES_model import *
 
 @cocotb.test()
 async def test_seq_bug1(dut):
@@ -23,6 +24,9 @@ async def test_seq_bug1(dut):
     dut.valid_in.value = 1
 
     dut.data_in.value = 2**128-1
+    AES A;
+    
+    expected_out = A.mixcolumns(2**128-1)
     
     await FallingEdge(dut.clk)  
     #await FallingEdge(dut.clk) 
@@ -34,7 +38,7 @@ async def test_seq_bug1(dut):
                     
     #assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
     
-    cocotb.log.info(f'Input sequence = {dut.data_in.value}, Expected output = , DUT Output = {dut.valid_out.value},{dut.data_out.value}')
+    cocotb.log.info(f'Input sequence = {dut.data_in.value}, Expected output = {expected_out}, DUT Output = {dut.valid_out.value},{dut.data_out.value}')
                                    
                 
    
