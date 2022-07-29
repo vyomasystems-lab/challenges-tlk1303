@@ -7,7 +7,7 @@ PWD=$(shell pwd)
 VERILOG_SOURCES = $(PWD)/               # provide your design path
 
 TOPLEVEL :=           # design file
-MODULE   :=     # test file
+MODULE   := test_mod.py    # test file
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
