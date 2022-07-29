@@ -5,7 +5,7 @@ from pathlib import Path
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, FallingEdge
-
+from AES_model import *
 
 @cocotb.test()
 async def test_seq_bug1(dut):
@@ -27,10 +27,21 @@ async def test_seq_bug1(dut):
         inp = random.randint(0, 2**128)
         dut.data_in.value = inp
         
+        inp = bin(inp)
         
+        inp = inp[2:]
+        block = (int(inp[0:32],2), int(inp[32:64],2), int(inp[64:96],2), int(inp[96:128],2))
+       
+        
+        out1 = A.mixcolumns(block)
+        out1 = [bin(out1[0])[2:].zfill(32), bin(out1[1])[2:].zfill(32), bin(out1[2])[2:].zfill(32), bin(out1[3])[2:].zfill(32)]
+                     
         await FallingEdge(dut.clk)  
         dut_out = bin(dut.data_out.value)[2:].zfill(128)
-        
+        print(dut_out[0:32])
+        print(out1[3])
+        print(dut_out[32:64])
+        print(out1[2])
 
         
         #print(dut.data_in.value)
