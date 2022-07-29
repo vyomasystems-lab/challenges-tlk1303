@@ -4,10 +4,10 @@ TOPLEVEL_LANG ?= verilog
 
 PWD=$(shell pwd)
 
-VERILOG_SOURCES = $(PWD)/               # provide your design path
+VERILOG_SOURCES = $(PWD)/MixColumns.v               # provide your design path
 
-TOPLEVEL :=           # design file
-MODULE   := test_mod.py    # test file
+TOPLEVEL := MixColumns          # design file
+MODULE   := test_mod    # test file
 
 include $(shell cocotb-config --makefiles)/Makefile.sim
 
