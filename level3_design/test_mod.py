@@ -9,7 +9,7 @@ from cocotb.triggers import RisingEdge, FallingEdge
 @cocotb.test()
 async def test_seq_bug1(dut):
     """Test for seq detection """
-
+    dut.valid_in.value = 0
     clock = Clock(dut.clk, 10, units="us")  # Create a 10us period clock on port clk
     cocotb.start_soon(clock.start())        # Start the clock
 
@@ -17,12 +17,18 @@ async def test_seq_bug1(dut):
     dut.reset.value = 1
     await FallingEdge(dut.clk)  
     dut.reset.value = 0
-    await FallingEdge(dut.clk)  
+    await FallingEdge(dut.clk) 
+    dut.reset.value = 1 
     
     dut.valid_in.value = 1
 
     dut.data_in.value = 2**128-1
     
+    await FallingEdge(dut.clk)  
+    #await FallingEdge(dut.clk) 
+    #await FallingEdge(dut.clk)  
+    #await FallingEdge(dut.clk)  
+ 
 
     
                     
@@ -31,9 +37,7 @@ async def test_seq_bug1(dut):
     cocotb.log.info(f'Input sequence = {dut.data_in.value}, Expected output = , DUT Output = {dut.valid_out.value},{dut.data_out.value}')
                                    
                 
-    #Reset
-    dut.reset.value = 1
-    await FallingEdge(dut.clk)  
-    dut.reset.value = 0
+   
+    
 
         
