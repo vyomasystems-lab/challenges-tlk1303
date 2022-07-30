@@ -30,18 +30,25 @@ async def test_seq_bug1(dut):
         inp = bin(inp)
         
         inp = inp[2:]
-        block = (int(inp[0:32],2), int(inp[32:64],2), int(inp[64:96],2), int(inp[96:128],2))
+        block1 = (int(inp[0:8],2), int(inp[8:16],2), int(inp[16:24],2), int(inp[24:32],2))
+        block2 = (int(inp[32:40],2), int(inp[40:48],2), int(inp[48:56],2), int(inp[56:64],2))
+        block3 = (int(inp[64:72],2), int(inp[72:80],2), int(inp[80:88],2), int(inp[88:96],2))
+        block4 = (int(inp[96:104],2), int(inp[104:112],2), int(inp[112:120],2), int(inp[120:128],2))
        
         
-        out1 = A.mixcolumns(block)
+        out1 = A.mixcolumns(block1)
+        out2 = A.mixcolumns(block2)
+        out3 = A.mixcolumns(block3)
+        out4 = A.mixcolumns(block4)
+        
         out1 = [bin(out1[0])[2:].zfill(32), bin(out1[1])[2:].zfill(32), bin(out1[2])[2:].zfill(32), bin(out1[3])[2:].zfill(32)]
                      
         await FallingEdge(dut.clk)  
         dut_out = bin(dut.data_out.value)[2:].zfill(128)
         print(dut_out[0:32])
-        print(out1[3])
+        print(out1)
         print(dut_out[32:64])
-        print(out1[2])
+        print(out2)
 
         
         #print(dut.data_in.value)
