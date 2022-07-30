@@ -1,6 +1,7 @@
 # Level1_Design2  SEQUENCE DETECTOR Verification
 
-The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
+The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon. The Design chosen for this level of Hackathon is the AES-128 Crypto-Core. The AES-128 encrypts a 128-bit input by passing the input through 10 rounds of Encryption. Each Round consists of the same set of blocks, which are implemented as separate modules in the Design RTL file. So The functional verification of AES-128 can be done by doing a block-wise/module-wise verification.
+For the purpose of the Hackathon, The MixColumns module of the Design is verified. 
 
 ![](seq_ss.png)
 
@@ -8,9 +9,7 @@ The verification environment is setup using [Vyoma's UpTickPro](https://vyomasys
 
 The [CoCoTb](https://www.cocotb.org/) based Python test is developed as explained. 
 
-The test drives inputs to the Design Under Test (sequence detector module - seq_detect_1011.v) which takes a Clock, Reset and Input bit signal as its inputs. The Design Under Test(DUT) drives an output *seq_seen* whenever the sequence *1011* is detected. The Sequence detection should includes overlapping sequences of *1011*.
-
-The Minimum constraint the DUT has to satisfy is, to detect the sequence *1011*. The Maximum constraint for sequence detector is, to detect the two consecutive sequence *10111011*. Therfore by checking the output for all possible 8-bit sequence the Design can be verified for all possible input sequences. The Test starts with a constraint input sequence and verifies the output. Then a radomized 8-bit sequence is applied to the input of DUT and its output is verified. The randomized input is applied for an appropriate number of times to cover all possible cases(2^8 = 256). The test also takes the possiblity of overlapped sequence into its account and an appropriate if condition to make sure that overlapped sequence is not detected.
+The Verification Environment drives the each input of the MixColumns module(DUT) by appropriate values. Necessary Clock and Reset signlas are driven to the module for its verfication. The Data input is generated randomly for a sufficiently large number of times and driven to the Data input of the module. The data valid line is verified first and then set to *HIGH* to get the MixColumns output. An open-source AES python class is used to get the model file for each block of the AES-128 design. The random inputs driven to the MixColumns module are also used as input to mixcolumns routine of the AES model class. The output from the model file is verfied against the output from the Design Under Test(DUT).
 
 The Clock Input is driven using the cocotb.clock module whose period is specified by the following statements,
 ```
