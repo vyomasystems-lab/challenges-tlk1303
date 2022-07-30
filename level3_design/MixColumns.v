@@ -47,7 +47,7 @@ if(!reset)begin
     data_out <= 'b0;
 end else begin 
    if(valid_in) begin               //mul by 2 and mul by 3 are used to perform matrix multiplication  for each column
-    data_out[(15*8)+7:(15*8)]<=  State_Mulx3[0] ^ State_Mulx3[1] ^ State[2] ^ State[3];   //first column
+    data_out[(15*8)+7:(15*8)]<=  State_Mulx2[0] ^ State_Mulx3[1] ^ State[2] ^ State[3];   //first column
     data_out[(14*8)+7:(14*8)]<= State[0] ^ State_Mulx2[1] ^ State_Mulx3[2] ^ State[3]; 
     data_out[(13*8)+7:(13*8)]<= State[0] ^ State[1] ^ State_Mulx2[2] ^ State_Mulx3[3]; 
     data_out[(12*8)+7:(12*8)]<= State_Mulx3[0] ^ State[1] ^ State[2] ^ State_Mulx2[3];
