@@ -37,13 +37,18 @@ instr = [   0x40007033,0x40006033, 0x40004033, 0x20001033, 0x20005033, 0x6000103
             
 mav_putvalue_instr = instr[j]    #Driving Instruction input  
 ```
+The Python model file is used to obtain the expected output and the following assert statement is used for comparing the obtained output to the expected value.
+```
+dut_output = dut.mav_putvalue.value
+expected_mav_putvalue = bitmanip(mav_putvalue_instr, mav_putvalue_src1, mav_putvalue_src2, mav_putvalue_src3)    
 
-The assert statement is used for comparing the mux's output to the expected value.
+assert dut_output == expected_mav_putvalue, error_message
+```
 
+## Bugs Found
 The following error is seen:
 ```
-assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
-                     AssertionError: Test failed with: 01100 1 != 00
+
 ```
 ## Test Scenario-1 
 - Test Inputs: inp12=1 sel=12
