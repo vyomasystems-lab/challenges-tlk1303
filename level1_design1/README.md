@@ -20,7 +20,7 @@ dut.inp2.value  = ival[2]
 
 The assert statement is used for comparing the mux's output to the expected value.
 
-The following error is seen:
+## Bugs Found:
 ```
 assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
                      AssertionError: Test failed with: 01100 1 != 00
