@@ -48,84 +48,80 @@ assert dut_output == expected_mav_putvalue, error_message
 ## Bugs Found
 The following error is seen:
 ```
-
+AssertionError: Input_Instruction = 01000000000000000111000000110011, Input data: SRC1 = 0xbf0b5d01, SRC2 = 0xde98a1fa, SRC3 = 0x92c482a5, Value mismatch DUT = 0x13c100201 does not match MODEL = 0x4206b803
 ```
 ## Test Scenario-1 
-- Test Inputs: inp12=1 sel=12
-- Expected Output: out=1
-- Observed Output in the DUT dut.out=0
+- Test Inputs           : INSTR=01000000000000000111000000110011
+-                         SRC1 =0xbf0b5d01
+-                         SRC2 =0xde98a1fa
+-                         SRC3 =0x92c482a5            
+- Expected Output       : 0x4206b803
+- Observed Output       : 0x13c100201
 
-Output mismatches for the above inputs as inp12 is 1 and when sel is 12 expected output is the value in inp12. 
-Therefore this proves that there is a design bug
+The DUT output does not match the output from the model processor. 
+Using the cocotb.log function the Instruction is obtained.
+```
+--ANDN 1
+     0.01ns INFO     Instruction = 0x40007033 DUT OUTPUT=0x13c100201
+     0.01ns INFO                         EXPECTED OUTPUT=0x4206b803
+```
+The Instruction which fails the test is found to be *ANDN 1*.
+By running the Verification without the *ANDN 1* instruction value *0x40007033* in the *instr* list, all other instructions work correctly and the output is obtained as,
+![](test_result_ss.png)
 
 ## Design Bug-1
-Based on the above test input and analysing the design, we see the following
+By reading the Model file and comparing it with DUT file, The following seems to be the bug,
 
 ```
- begin
-    case(sel)
-    5'b01101: out = inp12;           ====> BUG
-    5'b01101: out = inp13;
-    endcase
-  end
+  assign x__h39889 = mav_putvalue_src1 & mav_putvalue_src2 ; ======>BUG Line=3911
+```
+In the model file the implementation is done as follows for *ANDN 1*,
+```
+if((func7 == "0100000") and (func3 == "111") and (opcode == "0110011") ):
+        print('--ANDN 1')
+        mav_putvalue=mav_putvalue_src1 & (~mav_putvalue_src2) =====>EXPECTED OPERATION
+        mav_putvalue=mav_putvalue & 0xffffffff
+        mav_putvalue=(mav_putvalue<<1)|1
+        return mav_putvalue
 
 ```
-For a proper mux design, the case should be ``5'b01100: out = inp12`` instead of ``5'b01101: out = inp12`` as in the design code. This statement connects inp12 to out when ``sel = 13``, and there is no case for ``sel=12``. Therefore the output comes from a default case.
-
 ## Design Fix-1
-The design fix here must include a case where ``sel=12`` and connect inp12 to out when ``sel=12``.
+Based on the above observation the given buggy design was fixed with two changes,
 ```
-5'b01100: out = inp12;
+  assign x__h39889 = mav_putvalue_src1 & ~mav_putvalue_src2 ;       //===>BUG FIX Line-3911
 ```
-
-Updating the design and re-running the test makes the test pass for this case.
-
+Fixing it as done above gave rise to a second error with instruction *CMIX  17*,So the second fix was done at line 2728 as
 ```
-770.00ns INFO     sel=00012 model=1 DUT=1
+  assign field1__h2958 = (mav_putvalue_src1 & mav_putvalue_src2) | y__h39890 ;
 ```
 
-
-
-Then The second error is seen:
-```
-assert dut.out.value == ival[i], "Test failed with: {S} {Ival} != {Out}".format(Ival=ival[i], S=dut.sel.value, Out=dut.out.value)
-                     AssertionError: Test failed with: 11110 1 != 00
-```
-## Test Scenario-2
-- Test Inputs: inp30=1 sel=30
-- Expected Output: out=1
-- Observed Output in the DUT dut.out=0
-
-Output mismatches for the above inputs as inp30 is 1 and when sel is 30 expected output is the value in inp30. 
-Therefore this proves that there is a design bug
-
-## Design Bug-2
-Based on the above test input and analysing the design, we see the following
+Updating the design and re-running the test makes the test pass for all test cases.
 
 ```
- begin
-    case(sel)
-    5'b11101: out = inp29;   ====> BUG
-    default: out = 0;
-    endcase
-  end
-
-```
-The given mux design does not have a case for ``sel=30`` that is ``sel=5'b11110``. Therefore the mux design gives a default case output of 0 while the expected output for ``sel=30`` is 1.
-
-## Design Fix-2
-The design fix here must include a case where ``sel=30`` and connect inp30 to out when ``sel=30``.
-```
-5'b11110: out = inp30;
+SRC1= 3330864303  SRC2= 753667008  SRC3= 1108687512
+func7: 0100000 immvalue1: 00000  func3: 111 opcode: 0110011 
+--ANDN 1
+     5.70ns INFO     Instruction = 0x40007033 DUT OUTPUT=0x18401e85f
+     5.70ns INFO                         EXPECTED OUTPUT=0x18401e85f
 ```
 
-Updating the design and re-running the test makes the test pass for this case.
 
-![](result1_screenshot.png)
-
-The Corrected Design is added in The Corrected design directory of this repository.
+The Corrected Design is stored in the name of *Corrected_proc.v* in the given repository.
+The final output from the Verification after design fix was,
+```
+5800
+     5.81ns INFO     run_test passed
+     5.81ns INFO     **************************************************************************************
+                     ** TEST                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                     **************************************************************************************
+                     ** test_mkbitmanip.run_test       PASS           5.81           2.77          2.10  **
+                     **************************************************************************************
+                     ** TESTS=1 PASS=1 FAIL=0 SKIP=0                  5.81           2.78          2.09  **
+                     **************************************************************************************
+```
 ## Verification Strategy
-  The Verification strategy followed was to stimulate a single input line to logic HIGH and keep all other input lines at logic LOW. At the same time each input line was selected one after the other by using the select line. The corresponding observed outputs were checked against the expected output and mismatches were logged. 
+  The Verification was done with a Randomized test strategy. Large number of random inputs over the whole range of 32 bits were generated and passed to the Bit Manipulation Co-Processor. For Each set of input the all instructions from the instruction set of the Processor was passed as input and the output of DUT was checked against the output from the Model Python file. 
 
 ## Is the verification complete ?
-  The Verification for the given mux is complete and the design bugs were identified and fixed. The fixed design has passed all the test cases.
+  The Verification was done for a large number of random inputs against all instructions of the Processor and no Fail cases were reported after the Bug Fixes. Hence the Verification of the Bit Manipulation Co-Processor is Complete.
+  
