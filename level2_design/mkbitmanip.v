@@ -3908,7 +3908,7 @@ module mkbitmanip(CLK,
   assign x__h39669 = data__h39658 & mask__h39657 ;
   assign x__h39722 = ~x__h39744 ;
   assign x__h39744 = 32'hFFFFFFFF << shamt__h39728 ;
-  assign x__h39889 = mav_putvalue_src1 & mav_putvalue_src2 ;
+  assign x__h39889 = mav_putvalue_src1 & ~mav_putvalue_src2 ;
   assign x__h410 = { mav_putvalue_instr[14:12], mav_putvalue_instr[6:4] } ;
   assign x__h4309 = mav_putvalue_src1[x__h4425] ;
   assign x__h4402 = 32'd1 << x__h4425 ;
