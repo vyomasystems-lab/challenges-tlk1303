@@ -1,6 +1,6 @@
 # Level2_Design BIT MANIPULATION CO-PROCESSOR Verification
 
-The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
+The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon. The Given Bit Manipulation Co-Processor is verified using the following Verification Environment.
 
 ![](bit_manip_ss.png)
 
