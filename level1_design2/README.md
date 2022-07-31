@@ -53,8 +53,9 @@ else:
   cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 0, DUT Output = {dut.seq_seen.value}')
 ```
 
-In the above mentioned verfication environment, The following error is seen:
+In the above mentioned verfication environment, The following error is seen
 
+## Bugs Found
 ```
 assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
                       AssertionError: Random test failed with input sequence: [0, 1, 0, 1, 0, 1, 1], and output: 0, Expected ouput = 1
