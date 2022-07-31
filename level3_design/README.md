@@ -3,7 +3,7 @@
 The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon. The Design chosen for this level of Hackathon is the AES-128 Crypto-Core. The AES-128 encrypts a 128-bit input by passing the input through 10 rounds of Encryption. Each Round consists of the same set of blocks, which are implemented as separate modules in the Design RTL file. So The functional verification of AES-128 can be done by doing a block-wise/module-wise verification.
 For the purpose of the Hackathon, The MixColumns module of the Design is verified. 
 
-![](seq_ss.png)
+![](AES_ss.png)
 
 ## Verification Environment
 
@@ -17,199 +17,125 @@ clock = Clock(dut.clk, 10, units="us")  # Create a 10us period clock on port clk
 cocotb.start_soon(clock.start())        # Start the clock
 ```
 
-The DUT is reset to its *IDLE* state before driving the input sequence. This is done by the stimulating the reset signal as given below,
+The DUT is reset before the inputs are driven,
 ```
 dut.reset.value = 1
 await FallingEdge(dut.clk)  
 dut.reset.value = 0
 await FallingEdge(dut.clk)
 ```
-To Reset the sequence detector the Reset signal value is set *HIGH* till a falling edge of the clock is seen. Then the Reset signal is set to *LOW*, and the test waits for the next falling edge before proceeding with the test.
+To Reset the DUT the Reset signal value is set *HIGH* till a falling edge of the clock is seen. Then the Reset signal is set to *LOW*, and the test waits for the next falling edge before proceeding with the test.
 
-The Input sequence is stored in a list inp and driven to the *inp_bit* for a Clock period between two falling edges of the clock.
+The Input to the DUT is randomly generated and driven to data_in input line,
 ```
-dut.inp_bit.value = inp[j]
-await FallingEdge(dut.clk)
+inp = random.randint(0, 2**128)
+dut.data_in.value = inp
 ```
-Before the next randomized 8-bit input sequence is applied the sequence detector is reset by using the following reset signal,
+The same input is divided into four 32-bit sequence and passed to the model AES mixcolumns function,
 ```
-dut.reset.value = 1
-await FallingEdge(dut.clk)  
-dut.reset.value = 0
+inp = bin(inp)
+inp = inp[2:]
+inp = int(inp,2)
+block = [inp >> 96, inp >> 64 & 0xffffffff, inp >> 32 & 0xffffffff, inp & 0xffffffff]
+       
+out1 = A.mixcolumns(block)
 ```
+The output from the function is stored in the *out1* variable. The value in *out1* variable is compared woth the actual output from the DUT using the assert statements
 
-The assert statement is used for comparing the Sequence detector's output to the expected output. That is the DUT output must remain *LOW* while the sequence is not seen and The DUT output must be driven *HIGH* when the sequence is seen. Since the detecor's output must give correct values for both cases an if else condition is used.
 ```
-if(inp[j-3:j+1] == [1,0,1,1]):
-  assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-                        A = inp[:j+1], B = dut.seq_seen.value
-                    )
-  cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 1, DUT Output = {dut.seq_seen.value}')
-else:
-  assert dut.seq_seen.value == 0, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 0".format(
-                        A = inp[:j+1], B = dut.seq_seen.value
-                    )
-  cocotb.log.info(f'Input sequence = {inp[:j+1]}, Expected output = 0, DUT Output = {dut.seq_seen.value}')
-```
+dut_out = bin(dut.data_out.value)[2:].zfill(128)
 
+cocotb.log.info(f'Input = {dut.data_in.value}, DUT Output = {dut.valid_out.value},{dut_out}, Expected = {out1[0]}{out1[1]}{out1[2]}{out1[3]}')            
+assert dut_out[0:32] == out1[0] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 1".format(
+            A=inp,B=dut_out[0:32],C=out1[0])
+assert dut_out[32:64] == out1[1] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 2".format(
+            A=inp,B=dut_out[32:64],C=out1[1])
+assert dut_out[64:96] == out1[2] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 3".format(
+            A=inp,B=dut_out[64:96],C=out1[2])
+assert dut_out[96:128] == out1[3] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 4".format(
+            A=inp,B=dut_out[96:128],C=out1[3])
+```
+The output from DUT is stored in *DUT_OUT* variable. The assert statement is used to identify the error in one of the four 32-bit Words.
+
+## ERRORS IN DUT
 In the above mentioned verfication environment, The following error is seen:
 
 ```
-assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-                      AssertionError: Random test failed with input sequence: [0, 1, 0, 1, 0, 1, 1], and output: 0, Expected ouput = 1
+assert dut_out[32:64] == out1[1] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 1".format(
+                     AssertionError: Random test failed with input: 77444025260058953180764184109615742822, and output: 11101111101100010010100110110111, Expected    ouput = 11101100101100010010100110110111 in Word = 2
 ```
 ## Test Scenario-1 
-- Test Inputs               : Input sequence     = 0, 1, 0, 1, 0, 1, 1
-- Expected Output           : dut.seq_seen.value = 1
-- Observed Output in the DUT: dut.seq_seen.value = 0
+- Test Inputs               : 77444025260058953180764184109615742822
+- Expected Output           : 11101100101100010010100110110111
+- Observed Output in the DUT: 11101111101100010010100110110111
+- Word Number               : 2
 
-The Output of the Sequence detector mismatches because the last 4 inputs in the above sequence is *1011*. Hence the Expected output of the detector is 1. 
-However the Observed output of the detector is a 0, indicating that the Detector has not been able to detect the sequence.
+The Assert statement clearly mentions that an error is found in Word-2. That is in the second 32-bit word of the output. The DUT is implemented as collection of operations on four 32-bit words. Therefore Operations on the Second 32-bit word is verified to find the design bug.
 
 ## Design Bug-1
-Based on the above test input and analysing the design, we see the following
+Checking the operations on the Second 32-bit word the following Design Bug is found,
 
 ```
- always @(inp_bit or current_state)
-  begin
-    case(current_state)
-    SEQ_101:
-      begin
-        if(inp_bit == 1)
-          next_state = SEQ_1011;
-        else
-          next_state = IDLE;    =======>DESIGN BUG
-    end
-    endcase
-  end
+    data_out[(11*8)+7:(11*8)]<= State_Mulx2[4] ^ State_Mulx2[5] ^ State[6] ^ State[7];   //second column ======>DESIGN BUG
+    data_out[(10*8)+7:(10*8)]<= State[4] ^ State_Mulx2[5] ^ State_Mulx3[6] ^ State[7];
+    data_out[(9*8)+7:(9*8)] <=  State[4] ^ State[5] ^ State_Mulx2[6] ^ State_Mulx3[7]; 
+    data_out[(8*8)+7:(8*8)]<= State_Mulx3[4] ^ State[5] ^ State[6] ^ State_Mulx2[7];
 
 ```
-In the next state block, when current state is *SEQ_101* and Input is a *0* the design incorrectly moves to the *IDLE* state. This causes the error seen here where the Input sequence first gives *1 0 1* followed by a *0*. This moves the next state to *IDLE* and at the rising edge of clock, The current state changes to *IDLE*. 
+As per the AES specification THe State-5 should have been multiplied by 3 instead of 2, which is done here.
+```
+State_Mulx2[4] ^ State_Mulx2[5] ^ State[6] ^ State[7];
+```
 
 ## Design Fix-1
-For proper functioning of detector the next state here should *SEQ_10*. Since the after the sequence *101* a *0* is encounterd, the last two inputs (*10* of *1010*) can be the First two bits of the required sequence(*1011*). Therefore the change in design here is,
+For proper functioning of DUT the *State_Mulx2[5]* is changed as *State_Mulx3[5]*. 
 ```
-SEQ_101:
-      begin
-        if(inp_bit == 1)
-          next_state = SEQ_1011;
-        else
-          next_state = SEQ_10;
-      end
-```
-
-Updating the design, along with changing the initial test input sequence to ```inp = [0, 1, 0, 1, 0, 1, 1, 0]``` and then re-running the test makes the test case pass,
-
-```
- 85000.00ns INFO     Input sequence = [0, 1, 0, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
+data_out[(11*8)+7:(11*8)]<= State_Mulx2[4] ^ State_Mulx3[5] ^ State[6] ^ State[7];   //second column
 ```
 
 
 
-Then The second error is seen:
+Updating the design, and rerunning the test another error in DUT is found,
 ```
-assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-                     AssertionError: Random test failed with input sequence: [1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
+assert dut_out[64:96] == out1[2] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 3".format(
+                     AssertionError: Random test failed with input: 102964276406082905540204933244725949758, and output: 11001011111111101000001010111011, Expected ouput = 11001011000100001000001010111011 in Word = 3
 ```
+
 ## Test Scenario-2
-- Test Inputs               : Input sequence     = 1, 1, 0, 1, 1
-- Expected Output           : dut.seq_seen.value = 1
-- Observed Output in the DUT: dut.seq_seen.value = 0
+- Test Inputs               : 102964276406082905540204933244725949758
+- Expected Output           : 11001011000100001000001010111011
+- Observed Output in the DUT: 11001011111111101000001010111011
+- Word Number               : 3
 
-The Output of the Sequence detector mismatches because the last 4 inputs in the above sequence is *1011*. Hence the Expected output of the detector is 1. 
-However the Observed output of the detector is a 0, indicating that the Detector has not been able to detect the sequence here.
+The Assesrt statement here points to an error in the word-3. Therefore the third 32-bit word's operations are checked.
 
 ## Design Bug-2
-Based on the above test input and analysing the design, we see the following
+Based on the analysis of operations on third 32-bit word the following Design Bug is found,
 
 ```
- always @(inp_bit or current_state)
-  begin
-    case(current_state)
-    SEQ_1:
-      begin
-        if(inp_bit == 1)
-          next_state = IDLE;  ======>DESIGN BUG
-        else
-          next_state = SEQ_10;
-     end
-    endcase
-  end
+    data_out[(7*8)+7:(7*8)]<= State_Mulx2[8] ^ State_Mulx3[9] ^ State[10] ^ State[11];   //third column
+    data_out[(6*8)+7:(6*8)]<= State[8] & State_Mulx2[9] ^ State_Mulx3[10] ^ State[11];   ================>BUG
+    data_out[(5*8)+7:(5*8)]<= State[8] ^ State[9] ^ State_Mulx2[10] ^ State_Mulx3[11]; 
+    data_out[(4*8)+7:(4*8)]<= State_Mulx3[8] ^ State[9] ^ State[10] ^ State_Mulx2[11];
 ```
-Here when the input sequence has consecutive *1* the detector incorrectly moves the next state to *IDLE*. This means that the *1011* sequence beginning with the latter *1* is not detected as the Current state is *IDLE* and the following *0* does not cause any change in state.
+Here the *State[8]* byte and *State_Mul2[9]* byte are *AND*ed. As per the AES speicfication the correct operation is *XOR*.
+```
+ State[8] & State_Mulx2[9] ^ State_Mulx3[10] ^ State[11];
+```
 
 ## Design Fix-2
-Here the detector must remain in *SEQ_1* state, so that if the next input is *0* it can move to the *SEQ_10* state. This ensures proper functioning of the Detector.
+To fix the Bug The *AND* Operation is replaced with *XOR* operation,
 ```
-SEQ_1:
-      begin
-        if(inp_bit == 1)
-          next_state = SEQ_1; 
-        else
-          next_state = SEQ_10;
-     end
+data_out[(6*8)+7:(6*8)]<= State[8] ^ State_Mulx2[9] ^ State_Mulx3[10] ^ State[11];
 ```
 
-Updating the design, along with changing the initial test input sequence to ```inp = [1, 1, 0, 1, 1, 0, 0, 0]``` and then re-running the test makes the test case pass,
-
-```
- 65000.00ns INFO     Input sequence = [1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
-```
-
-Then a Third Error is encounterd: 
-```
-assert dut.seq_seen.value == 1, "Random test failed with input sequence: {A}, and output: {B}, Expected ouput = 1".format(
-                     AssertionError: Random test failed with input sequence: [1, 0, 1, 1, 1, 0, 1, 1], and output: 0, Expected ouput = 1
-```
-
-## Test Scenario-3
-- Test Inputs               : Input sequence     = 1, 0, 1, 1, 1, 0, 1, 1
-- Expected Output           : dut.seq_seen.value = 1
-- Observed Output in the DUT: dut.seq_seen.value = 0
-
-Here two consecutive *1011* sequence is driven as input to the detector. The First sequence has been detected Correctly. However the second sequence was not detected. Hence it shows a bug in the design.
-
-## Design Bug-3
-Based on the above test input and analysing the design, we see the following
-
-```
- always @(inp_bit or current_state)
-  begin
-    case(current_state)
-    SEQ_1011:
-      begin
-        next_state = IDLE;  =====>DESIGN BUG
-      end
-    endcase
-  end
-```
-Here After the Sequence is detected here and the seq_seen is driven *HIGH*, The next state of detector is always moved to *IDLE*. This causes the input *1* in next Clock Period after the *1011* sequence to remain undetected.
-
-## Design Fix-3
-In order to overcome this limitation, The next state from *SEQ_1011* should move to *SEQ_1*, if the following input is *1*. Moreover if next input of the sequence is zero the Detector is moved to its default state *IDLE*.
-```
-SEQ_1:
-      begin
-        if(inp_bit == 1)
-          next_state = SEQ_1;
-        else
-          next_state = IDLE;
-     end
-```
-
-Updating the design, along with changing the initial test input sequence to ```inp = [1, 0, 1, 1, 1, 0, 1, 1]``` and then re-running the test makes the test case pass,
-
-```
-95000.00ns INFO     Input sequence = [1, 0, 1, 1, 1, 0, 1, 1], Expected output = 1, DUT Output = 1
-```
- 
- Following these design fixes all random test sequences were correctly detected by the Sequence detector,
+Following these design fixes the DUT performed correct operation on all random test cases,
  
  ![](test_result_ss.png)
  
-The Fixed Design is added in the Corrected design directory of this repository.
+Both Fixed Design and Buggy design are added in the repository.
 ## Verification Strategy
-  The Verification strategy followed was to use a Constrained Random Verification. The Verification was started with the minimum contraint followed by a large number of random input sequence. Whenever the Verification fails the initial input was set to the failing input and The bugs were identified and fixed. Then the verification was restarted with the updated contraint to make sure the design passes all possible input sequences.
+  The Verification strategy followed was a Block wise verification with randomised inputs. An Open source Model AES python file was used to get correct outputs. This was tested against the output from Design Under Test for a sufficiently large number of random inputs.
 
 ## Is the verification complete ?
-  The Verification Environment tested a variety of conditions in which the specified sequence can be driven to the input of the detector, and The corrected design has passed all those cases. The number of cases tested was appropriately large, and Hence the Verification should have covered the possible cases in which the specified sequence can occur. Therefore the Verification of the given Sequence Detector is now Complete.
+  The Verification Environment tested a variety of Inputs for the given module. The Output from each of the four 32-bit words were repeatedly check against the expected output for random inputs. The Test properly threw two fail cases during Verification. Upon Correcting there has been no fail cases. Hence the Verifiaction of this Module is Complete.
