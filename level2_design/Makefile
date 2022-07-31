@@ -6,7 +6,7 @@ PWD=$(shell pwd)
 
 export PYTHONPATH := $(PWD):$(PYTHONPATH)  # reference model
 
-VERILOG_SOURCES = $(PWD)/Corrected_proc.v
+VERILOG_SOURCES = $(PWD)/mkbitmanip.v
 
 TOPLEVEL := mkbitmanip        # design
 MODULE   := test_mkbitmanip   # test
