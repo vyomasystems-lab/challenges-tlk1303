@@ -1,6 +1,6 @@
 # Level1_Design1 MUX Verification
 
-The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
+The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon. The Desgin file provided for Hackathon is verified using the following Verification Environment.
 
 ![](mux_ss.png)
 
