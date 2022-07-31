@@ -1,6 +1,6 @@
 # Level1_Design2  SEQUENCE DETECTOR Verification
 
-The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon.
+The verification environment is setup using [Vyoma's UpTickPro](https://vyomasystems.com) provided for the hackathon. The Sequence Detector provided for the Hackathon is verified using the following Verification Environment.
 
 ![](seq_det_ss.png)
 
