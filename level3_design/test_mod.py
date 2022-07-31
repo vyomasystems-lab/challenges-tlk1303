@@ -42,13 +42,13 @@ async def test_seq_bug1(dut):
               
                
         cocotb.log.info(f'Input = {dut.data_in.value}, DUT Output = {dut.valid_out.value},{dut_out}, Expected = {out1[0]}{out1[1]}{out1[2]}{out1[3]}')            
-        assert dut_out[0:32] == out1[0] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 0".format(
+        assert dut_out[0:32] == out1[0] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 1".format(
             A=inp,B=dut_out[0:32],C=out1[0])
-        assert dut_out[32:64] == out1[1] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 1".format(
+        assert dut_out[32:64] == out1[1] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 2".format(
             A=inp,B=dut_out[32:64],C=out1[1])
-        assert dut_out[64:96] == out1[2] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 2".format(
+        assert dut_out[64:96] == out1[2] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 3".format(
             A=inp,B=dut_out[64:96],C=out1[2])
-        assert dut_out[96:128] == out1[3] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 3".format(
+        assert dut_out[96:128] == out1[3] , "Random test failed with input: {A}, and output: {B}, Expected ouput = {C} in Word = 4".format(
             A=inp,B=dut_out[96:128],C=out1[3])
         
         
